@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tile Match</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    
+  	<script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="easel.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="gallery.css">
+	<style type="text/css">
+
+
+
+	</style>
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+			  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-nav-demo" aria-expanded="false">
+	        <span class="sr-only">Toggle navigation</span>
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	      </button>
+          
+	<a href="../index.html" class="navbar-brand"><span class="fa fa-gamepad"></span> Games</a>
+        
+			</div>
+			<div class="collapse navbar-collapse" id="bs-nav-demo">
+				<ul class="nav navbar-nav">
+					<li><a href="tilematch.html">Tile Match</a></li>
+					<li><a href="Demo_WebGL/index.html">Galaxy Shooter</a></li>
+                    
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="colorGame.html">RGB Guess</a></li>
+					<li><a href="circles.html">Sound Tapper</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+
+<div class="container">	
+	<div class="jumbotron">
+		<h1><i class="fa fa-gamepad"></i></span> Tile Match </h1>
+		<p>Enjoy!</p>
+	</div>	
+
+<div id="container">
+    
+     <head>
+<script src="../games/easel.js"></script>
+<script type="text/javascript">
+      var canvas;
+      var stage;
+      var squareSide = 70;
+      var squareOutline = 5;
+      var max_rgb_color_value = 255;
+      var gray = Graphics.getRGB(255, 255, 255);
+      var placementArray = []; 
+      var tileClicked;
+      var timeAllowable;
+      var totalMatchesPossible;
+      var matchesFound;
+      var txt;
+      var matchesFoundText;
+      var squares;
+      var record = 0;
+	  var playCount = 0;
+	  
+      function init() 
+	  {
+        var rows = 5;
+        var columns = 6;
+        var squarePadding = 10;
+        canvas = document.getElementById('myCanvas');
+        stage = new Stage(canvas);
+        var numberOfTiles = rows*columns;
+		var timeToBeat = record;
+        matchesFound = 0;
+        timeAllowable = 200;
+        txt = new Text(timeAllowable, "30px Monospace", "#fff");
+        txt.textBaseline = "top"; // draw text relative to the top of the em box.
+        txt.x = 500;
+        txt.y = 0;
+        stage.addChild(txt);
+		
+        squares = [];
+        totalMatchesPossible = numberOfTiles/2;
+        Ticker.init();
+        Ticker.addListener(window);
+        Ticker.setPaused(false);
+		
+        matchesFoundText = new Text("Pairs Found: "+matchesFound+"/"+totalMatchesPossible, "30px Monospace", "#fff");
+        matchesFoundText.textBaseline = "top"; // draw text relative to the top of the em box.
+        matchesFoundText.x = 500;
+        matchesFoundText.y = 40;
+        stage.addChild(matchesFoundText);
+        setPlacementArray(numberOfTiles);
+		
+		if (playCount > 0)
+		{
+			timeToBeatText = new Text("Time to beat: " + timeToBeat, "30px Monospace", "#fff");
+			timeToBeatText.textBaseline = "top";
+			timeToBeatText.x = 500;
+			timeToBeatText.y = 80;
+			stage.addChild(timeToBeatText);
+		}
+		
+		if (playCount > 0)
+		{
+			playCountText = new Text("PlayCount: " + playCount, "30px Monospace", "#fff");
+			playCountText.textBaseline = "top";
+			playCountText.x = 500;
+			playCountText.y = 120;
+			stage.addChild(playCountText);
+		}
+		
+        for(var i=0;i<numberOfTiles;i++)
+		{
+          var placement = getRandomPlacement(placementArray);
+          if (i % 2 === 0)
+		  {
+            var color = randomColor();
+          }
+          var square = drawSquare(gray);
+          square.color = color; 
+          square.x = (squareSide+squarePadding) * (placement % columns);
+          square.y = (squareSide+squarePadding) * Math.floor(placement / columns);
+          squares.push(square);
+          stage.addChild(square);
+          square.onPress = handleOnPress;
+          stage.update();
+        };
+      }
+      function drawSquare(color) 
+	  {
+        var shape = new Shape();
+        var graphics = shape.graphics;
+        graphics.setStrokeStyle(squareOutline);
+        graphics.beginStroke(gray);
+        graphics.beginFill(color);
+        graphics.rect(squareOutline, squareOutline, squareSide, squareSide);
+        return shape;
+      }
+      function randomColor()
+	  {
+        var color = Math.floor(Math.random()*255);
+        var color2 = Math.floor(Math.random()*255);
+        var color3 = Math.floor(Math.random()*255);
+        return Graphics.getRGB(color, color2, color3)
+      }
+      function setPlacementArray(numberOfTiles)
+	  {
+        for(var i = 0;i< numberOfTiles;i++)
+		{
+          placementArray.push(i);
+        }
+      }
+      function getRandomPlacement(placementArray)
+	  {
+        randomNumber = Math.floor(Math.random()*placementArray.length);
+        return placementArray.splice(randomNumber, 1)[0];
+      }
+      function handleOnPress(event)
+	  {
+        var tile = event.target;
+        tile.graphics.beginFill(tile.color).rect(squareOutline, squareOutline, squareSide, squareSide);
+        if(!!tileClicked === false || tileClicked === tile)
+		{
+          tileClicked = tile;
+        }
+		else
+		{
+          if(tileClicked.color === tile.color && tileClicked !== tile)
+		  {
+            tileClicked.visible = false;
+            tile.visible = false;
+            matchesFound++;
+            matchesFoundText.text = "Pairs Found: "+matchesFound+"/"+totalMatchesPossible;
+            if (matchesFound===totalMatchesPossible)
+			{
+              gameOver(true);
+            }
+          }
+		  else
+		  {
+            tileClicked.graphics.beginFill(gray).rect(squareOutline, squareOutline, squareSide, squareSide);
+          }
+          tileClicked = tile;
+        }
+        stage.update(); 
+      }
+      function tick() 
+	  {
+        secondsLeft = Math.floor((timeAllowable-Ticker.getTime()/1000));
+        txt.text = secondsLeft;
+        if (secondsLeft <= 0)
+		{
+          gameOver(false);
+        }
+        stage.update();
+      }
+      function gameOver(win)
+	  {
+        Ticker.setPaused(true);
+        for(var i=0;i<squares.length;i++)
+		{
+          squares[i].graphics.beginFill(squares[i].color).rect(5, 5, 70, 70);
+          squares[i].onPress = null;
+        }
+        var replayParagraph = document.getElementById("replay");
+        replayParagraph.innerHTML = "<a href='#' onclick='replay();'>Play Again?</a>";
+		
+
+        if (win === true)
+		{
+          if (secondsLeft > record)
+		  {
+			record = secondsLeft;
+		  }
+		  matchesFoundText.text = "You win!" + " New Record: " + record + "!"
+        }
+		else
+		{
+          txt.text = secondsLeft + "... Game Over";
+        }
+      }	  
+      function replay()
+	  {
+		playCount++;
+        init();
+      }
+    </script>
+<body onload="init()">
+  <header id="header" class="EaselJS">
+    <p id="replay"></p>
+  </header>
+<canvas id="myCanvas" width="960" height="400"></canvas>
+</body>
+  </div>
+</div>
+
+
+
+</body>
+</html>
